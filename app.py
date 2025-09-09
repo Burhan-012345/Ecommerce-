@@ -24,9 +24,9 @@ app.config['MAIL_USERNAME'] = 'ahmedburhan4834@gmail.com'
 app.config['MAIL_PASSWORD'] = 'cnzwlrvuqvskella'
 
 # Twilio configuration - Use environment variables or replace with real credentials
-TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', 'AC28038321de165fdff3636b8fa0cb605b')
-TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '72633e1135c123e0a708199f48e6b3ba')
-TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '+12703987622')
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', 'AC98dceb0cce1b4603299ca4de69840f265b')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '0669baeaef4a481d3d1a1c1f1fb7f4a9')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '+13134257867')
 
 # Razorpay configuration
 RAZORPAY_KEY_ID = 'your_razorpay_key_id'  # Replace with your Razorpay key
