@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Sidebar Filters -->
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Categories</h6>
+                    <div class="list-group">
+                        <a href="{{ url_for('products') }}" class="list-group-item list-group-item-action {% if not selected_category %}active{% endif %}">All Categories</a>
+                        {% for category in categories %}
+                        <a href="{{ url_for('products', category=category.category) }}" class="list-group-item list-group-item-action {% if selected_category == category.category %}active{% endif %}">
+                            {{ category.category }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Listing -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Products</h2>
+                <form class="d-flex" method="GET" action="{{ url_for('products') }}">
+                    <input type="hidden" name="category" value="{{ selected_category }}">
+                    <input class="form-control me-2" type="search" name="search" placeholder="Search products..." value="{{ search_query }}" aria-label="Search">
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
+            </div>
+
+            {% if products %}
+            <div class="row">
+                {% for product in products %}
+                <div class="col-md-4 mb-4">
+                    <div class="card product-card h-100">
+                        <span class="badge bg-primary category-badge">{{ product.category }}</span>
+                        <img src="{{ product.image_url or '/static/images/placeholder.jpg' }}" class="card-img-top product-image" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description[:60] }}...</p>
+                            <p class="card-text fw-bold text-primary">${{ "%.2f"|format(product.price) }}</p>
+                            <p class="card-text">
+                                <small class="text-{% if product.stock > 10 %}success{% elif product.stock > 0 %}warning{% else %}danger{% endif %}">
+                                    {% if product.stock > 10 %}In Stock{% elif product.stock > 0 %}Low Stock{% else %}Out of Stock{% endif %}
+                                </small>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-0">
+                            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-outline-primary w-100 mb-2">View Details</a>
+                            {% if session.user_id and product.stock > 0 %}
+                            <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn btn-primary w-100">Add to Cart</a>
+                            {% elif not session.user_id %}
+                            <a href="{{ url_for('login') }}" class="btn btn-primary w-100">Login to Purchase</a>
+                            {% else %}
+                            <button class="btn btn-secondary w-100" disabled>Out of Stock</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4>No products found</h4>
+                <p class="text-muted">Try adjusting your search or filter criteria</p>
+                <a href="{{ url_for('products') }}" class="btn btn-primary">Clear Filters</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

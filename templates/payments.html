@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Payment Processing</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="payment-status">
+                            <i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i>
+                            <h4>Processing your payment...</h4>
+                            <p class="text-muted">Please wait while we process your payment</p>
+                        </div>
+                    </div>
+                    
+                    <div class="order-summary mb-4">
+                        <h5 class="mb-3">Order Summary</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th>Order ID:</th>
+                                        <td>{{ order_id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Amount:</th>
+                                        <td>${{ "%.2f"|format(amount) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Payment Method:</th>
+                                        <td>Razorpay</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Status:</th>
+                                        <td><span class="badge bg-warning">Processing</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Do not refresh or close this page while payment is processing.
+                    </div>
+                    
+                    <div id="payment-success" class="text-center d-none">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h4 class="text-success">Payment Successful!</h4>
+                        <p>Your payment has been processed successfully.</p>
+                        <a href="{{ url_for('index') }}" class="btn btn-success">Continue Shopping</a>
+                    </div>
+                    
+                    <div id="payment-failure" class="text-center d-none">
+                        <i class="fas fa-times-circle fa-3x text-danger mb-3"></i>
+                        <h4 class="text-danger">Payment Failed</h4>
+                        <p>There was an issue processing your payment. Please try again.</p>
+                        <a href="{{ url_for('checkout') }}" class="btn btn-primary">Try Again</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const options = {
+        key: '{{ razorpay_key_id }}',
+        amount: {{ amount * 100 }}, // Amount in paise
+        currency: 'INR',
+        name: 'RoyalBlue Shop',
+        description: 'Order Payment',
+        order_id: '{{ order_id }}',
+        handler: function(response) {
+            // Payment successful
+            document.querySelector('.payment-status').classList.add('d-none');
+            document.getElementById('payment-success').classList.remove('d-none');
+            
+            // Update status in table
+            document.querySelector('tr:last-child td:last-child').innerHTML = 
+                '<span class="badge bg-success">Completed</span>';
+                
+            // Redirect after delay
+            setTimeout(function() {
+                window.location.href = '{{ url_for("payment_success") }}?razorpay_order_id=' + response.razorpay_order_id;
+            }, 2000);
+        },
+        prefill: {
+            name: '{{ customer_name }}',
+            email: '{{ customer_email }}',
+            contact: '{{ customer_phone }}'
+        },
+        theme: {
+            color: '#4169e1'
+        },
+        modal: {
+            ondismiss: function() {
+                // Payment failed or modal closed
+                document.querySelector('.payment-status').classList.add('d-none');
+                document.getElementById('payment-failure').classList.remove('d-none');
+            }
+        }
+    };
+    
+    const rzp = new Razorpay(options);
+    rzp.open();
+    
+    // Check if payment was already completed (page refresh case)
+    setTimeout(function() {
+        fetch('{{ url_for("check_payment_status", order_id=order_id) }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'completed') {
+                    document.querySelector('.payment-status').classList.add('d-none');
+                    document.getElementById('payment-success').classList.remove('d-none');
+                    document.querySelector('tr:last-child td:last-child').innerHTML = 
+                        '<span class="badge bg-success">Completed</span>';
+                }
+            });
+    }, 3000);
+});
+</script>
+{% endblock %}
